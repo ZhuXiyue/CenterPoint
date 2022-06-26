@@ -5,6 +5,7 @@ import sys
 import threading
 import time
 from collections import OrderedDict
+import numpy as np
 
 import torch
 from det3d import torchie
@@ -397,8 +398,10 @@ class Trainer(object):
             print(data_batch)
             for key in data_batch:
                 print(key)
-                print(data_batch[key].size())
-
+                try:
+                    print(np.shape(data_batch[key]))
+                except:
+                    print("no shape")
             global_step = base_step + i
             if self.lr_scheduler is not None:
                 #print(global_step)

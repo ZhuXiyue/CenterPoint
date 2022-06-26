@@ -397,7 +397,7 @@ class Trainer(object):
             print(data_batch)
             for key in data_batch:
                 print(key)
-                print(data_batch[key])
+                print(data_batch[key].size())
 
             global_step = base_step + i
             if self.lr_scheduler is not None:

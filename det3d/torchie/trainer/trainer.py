@@ -326,6 +326,7 @@ class Trainer(object):
             )
 
     def call_hook(self, fn_name):
+        print(self._hooks)
         for hook in self._hooks:
             getattr(hook, fn_name)(self)
 

@@ -326,7 +326,7 @@ class Trainer(object):
             )
 
     def call_hook(self, fn_name):
-        print(self._hooks)
+        # print(self._hooks)
         for hook in self._hooks:
             getattr(hook, fn_name)(self)
 
@@ -393,6 +393,12 @@ class Trainer(object):
         # prefetcher = Prefetcher(data_loader)
         # for data_batch in BackgroundGenerator(data_loader, max_prefetch=3):
         for i, data_batch in enumerate(data_loader):
+            # know about the input and output
+            print(data_batch)
+            for key in data_batch:
+                print(key)
+                print(data_batch[key])
+
             global_step = base_step + i
             if self.lr_scheduler is not None:
                 #print(global_step)

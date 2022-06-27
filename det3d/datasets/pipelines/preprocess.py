@@ -16,7 +16,8 @@ def _dict_select(dict_, inds):
         if isinstance(v, dict):
             _dict_select(v, inds)
         else:
-            dict_[k] = v[inds]
+            if not k == 'bin_map'
+                dict_[k] = v[inds]
 
 
 def drop_arrays_by_name(gt_names, used_classes):
@@ -42,8 +43,8 @@ class Preprocess(object):
                 self.db_sampler = None 
                 
             self.npoints = cfg.get("npoints", -1)
-
-        self.no_augmentation = cfg.get('no_augmentation', False)
+        ## !!!!!! TODO: change to False to enable aug!
+        self.no_augmentation = cfg.get('no_augmentation', True)
 
     def __call__(self, res, info):
 

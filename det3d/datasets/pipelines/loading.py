@@ -19,7 +19,7 @@ import torch
 from shapely.validation import make_valid
 from shapely.geometry.polygon import Polygon 
 import cv2
-
+from nuscenes import NuScenes
 
 def gen_dx_bx(xbound, ybound, zbound):
     dx = torch.Tensor([row[2] for row in [xbound, ybound, zbound]])
@@ -269,7 +269,8 @@ class LoadPointCloudFromFile(object):
 @PIPELINES.register_module
 class LoadPointCloudAnnotations(object):
     def __init__(self, with_bbox=True, **kwargs):
-        pass
+        self.nusc =  NuScenes(version='v1.0-trainval', dataroot="data/nuScenes", verbose=True)
+        # pass
 
     def get_binimg_map(self, rec):
         nusc = self.nusc

@@ -280,6 +280,7 @@ class AssignLabel(object):
         self._max_objs = assigner_cfg.max_objs
         self._min_radius = assigner_cfg.min_radius
         self.cfg = assigner_cfg
+        self.nusc = NuScenes(version=self.version, dataroot=root_path, verbose=True)
 
     def __call__(self, res, info):
         max_objs = self._max_objs

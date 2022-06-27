@@ -3,6 +3,7 @@ import numpy as np
 from det3d.core.bbox import box_np_ops
 from det3d.core.sampler import preprocess as prep
 from det3d.builder import build_dbsampler
+import torch
 
 from det3d.core.input.voxel_generator import VoxelGenerator
 from det3d.core.utils.center_utils import (
@@ -45,7 +46,7 @@ class Preprocess(object):
             self.npoints = cfg.get("npoints", -1)
         ## !!!!!! TODO: change to False to enable aug!
         self.no_augmentation = cfg.get('no_augmentation', True)
-        print("debug!! aug:",self.no_augmentation)
+        # print("debug!! aug:",self.no_augmentation)
 
     def __call__(self, res, info):
 
@@ -258,7 +259,7 @@ class Voxelization(object):
                 range=pc_range,
                 size=voxel_size
             )            
-
+        print("inside voxel:",res["lidar"]["annotations"]["bin_map"])
         return res, info
 
 def flatten(box):
@@ -459,6 +460,6 @@ class AssignLabel(object):
             pass
 
         res["lidar"]["targets"] = example
-
+        print("inside assign label:",example['bin_map'])
         return res, info
 

@@ -65,6 +65,7 @@ class Preprocess(object):
             gt_dict = {
                 "gt_boxes": anno_dict["boxes"],
                 "gt_names": np.array(anno_dict["names"]).reshape(-1),
+                "bin_map":anno_dict["bin_map"]
             }
 
         if self.mode == "train" and not self.no_augmentation:

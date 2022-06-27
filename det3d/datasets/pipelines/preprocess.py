@@ -16,7 +16,7 @@ def _dict_select(dict_, inds):
         if isinstance(v, dict):
             _dict_select(v, inds)
         else:
-            if not k == 'bin_map'
+            if not k == 'bin_map':
                 dict_[k] = v[inds]
 
 

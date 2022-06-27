@@ -269,7 +269,8 @@ class LoadPointCloudFromFile(object):
 @PIPELINES.register_module
 class LoadPointCloudAnnotations(object):
     def __init__(self, with_bbox=True, **kwargs):
-        self.nusc =  NuScenes(version='v1.0-trainval', dataroot="data/nuScenes", verbose=True)
+        self._root_path = "data/nuScenes"
+        self.nusc =  NuScenes(version='v1.0-trainval', dataroot=self._root_path, verbose=True)
         # pass
 
     def get_binimg_map(self, rec):

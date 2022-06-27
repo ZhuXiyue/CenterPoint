@@ -362,6 +362,8 @@ class Trainer(object):
             device = None
 
         # data = example_convert_to_torch(data, device=device)
+        print(data['bin_map'])
+        print(data['coordinates'])
         example = example_to_device(
             data, torch.cuda.current_device(), non_blocking=False
         )

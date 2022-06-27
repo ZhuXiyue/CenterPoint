@@ -259,7 +259,7 @@ class Voxelization(object):
                 range=pc_range,
                 size=voxel_size
             )            
-        print("inside voxel:",res["lidar"]["annotations"]["bin_map"])
+        # print("inside voxel:",res["lidar"]["annotations"]["bin_map"])
         return res, info
 
 def flatten(box):
@@ -460,6 +460,6 @@ class AssignLabel(object):
             pass
 
         res["lidar"]["targets"] = example
-        print("inside assign label:",example['bin_map'])
+        # print("inside assign label:",example['bin_map'])
         return res, info
 

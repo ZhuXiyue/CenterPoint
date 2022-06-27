@@ -42,7 +42,8 @@ class Preprocess(object):
                 self.db_sampler = None 
                 
             self.npoints = cfg.get("npoints", -1)
-        self.no_augmentation = cfg.get('no_augmentation')
+
+        self.no_augmentation = cfg.get('no_augmentation', False)
 
     def __call__(self, res, info):
 
@@ -449,7 +450,6 @@ class AssignLabel(object):
             example.update({'gt_boxes_and_cls': gt_boxes_and_cls})
 
             example.update({'hm': hms, 'anno_box': anno_boxs, 'ind': inds, 'mask': masks, 'cat': cats})
-            example['']
         else:
             pass
 

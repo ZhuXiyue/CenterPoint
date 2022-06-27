@@ -450,6 +450,7 @@ class AssignLabel(object):
             example.update({'gt_boxes_and_cls': gt_boxes_and_cls})
 
             example.update({'hm': hms, 'anno_box': anno_boxs, 'ind': inds, 'mask': masks, 'cat': cats})
+            example['bin_map'] = gt_dict['bin_map']
         else:
             pass
 

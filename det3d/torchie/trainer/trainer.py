@@ -400,7 +400,7 @@ class Trainer(object):
         # for data_batch in BackgroundGenerator(data_loader, max_prefetch=3):
         for i, data_batch in enumerate(data_loader):
             # know about the input and output
-            print(data_batch)
+            # print(data_batch)
             for key in data_batch:
                 print(key)
                 try:

@@ -1,6 +1,6 @@
 import itertools
 import logging
-
+ 
 from det3d.utils.config_tool import get_downsample_factor
 
 tasks = [
@@ -128,6 +128,7 @@ train_preprocessor = dict(
     global_scale_noise=[0.95, 1.05],
     db_sampler=db_sampler,
     class_names=class_names,
+    no_augmentation = True
 )
 
 val_preprocessor = dict(

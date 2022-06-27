@@ -12,7 +12,91 @@ from det3d.core import box_np_ops
 import pickle 
 import os 
 from ..registry import PIPELINES
+from nuscenes.utils.data_classes import Box
+from pyquaternion import Quaternion
+from nuscenes.map_expansion.map_api import NuScenesMap
+import torch
+from shapely.validation import make_valid
+from shapely.geometry.polygon import Polygon 
+import cv2
 
+
+def gen_dx_bx(xbound, ybound, zbound):
+    dx = torch.Tensor([row[2] for row in [xbound, ybound, zbound]])
+    bx = torch.Tensor([row[0] + row[2]/2.0 for row in [xbound, ybound, zbound]])
+    nx = torch.LongTensor([(row[1] - row[0]) / row[2] for row in [xbound, ybound, zbound]])
+
+    return dx, bx, nx
+
+def get_rot(h):
+    return torch.Tensor([
+        [np.cos(h), np.sin(h)],
+        [-np.sin(h), np.cos(h)],
+    ])
+
+def get_nusc_maps(map_folder):
+    nusc_maps = {map_name: NuScenesMap(dataroot=map_folder,
+                map_name=map_name) for map_name in [
+                    "singapore-hollandvillage", 
+                    "singapore-queenstown",
+                    "boston-seaport",
+                    "singapore-onenorth",
+                ]}
+    return nusc_maps
+
+
+def get_local_map(nmap, center, stretch, layer_names, line_names):
+    # need to get the map here...
+    box_coords = (
+        center[0] - stretch,
+        center[1] - stretch,
+        center[0] + stretch,
+        center[1] + stretch,
+    )
+
+    polys = {}
+
+    # polygons
+    records_in_patch = nmap.get_records_in_patch(box_coords,
+                                                 layer_names=layer_names,
+                                                 mode='intersect')
+    for layer_name in layer_names:
+        polys[layer_name] = []
+        for token in records_in_patch[layer_name]:
+            poly_record = nmap.get(layer_name, token)
+            if layer_name == 'drivable_area':
+                polygon_tokens = poly_record['polygon_tokens']
+            else:
+                polygon_tokens = [poly_record['polygon_token']]
+
+            for polygon_token in polygon_tokens:
+                polygon = nmap.extract_polygon(polygon_token)
+                polys[layer_name].append(np.array(polygon.exterior.xy).T)
+
+    # lines
+    for layer_name in line_names:
+        polys[layer_name] = []
+        for record in getattr(nmap, layer_name):
+            token = record['token']
+
+            line = nmap.extract_line(record['line_token'])
+            if line.is_empty:  # Skip lines without nodes
+                continue
+            xs, ys = line.xy
+
+            polys[layer_name].append(
+                np.array([xs, ys]).T
+                )
+
+    # convert to local coordinates in place
+    rot = get_rot(np.arctan2(center[3], center[2])).T
+    for layer_name in polys:
+        for rowi in range(len(polys[layer_name])):
+            polys[layer_name][rowi] -= center[:2]
+            polys[layer_name][rowi] = np.dot(polys[layer_name][rowi], rot)
+
+    return polys
+    
 def _dict_select(dict_, inds):
     for k, v in dict_.items():
         if isinstance(v, dict):
@@ -187,17 +271,134 @@ class LoadPointCloudAnnotations(object):
     def __init__(self, with_bbox=True, **kwargs):
         pass
 
+    def get_binimg_map(self, rec):
+        nusc = self.nusc
+        egopose = nusc.get('ego_pose', nusc.get('sample_data', rec['data']['LIDAR_TOP'])['ego_pose_token'])
+        scene2map = {}
+        for rec_ in self.nusc.scene:
+            log = self.nusc.get('log', rec_['log_token'])
+            scene2map[rec_['name']] = log['location']
+        map_name = scene2map[nusc.get('scene', rec['scene_token'])['name']]
+
+        rot = Quaternion(egopose['rotation']).rotation_matrix
+        rot = np.arctan2(rot[1, 0], rot[0, 0])
+        center = np.array([egopose['translation'][0], egopose['translation'][1], np.cos(rot), np.sin(rot)])
+
+        poly_names = ['road_segment', 'lane','drivable_area','ped_crossing','walkway','stop_line','carpark_area']
+        line_names = ['road_divider', 'lane_divider']
+        map_folder = self._root_path
+        nusc_maps = get_nusc_maps(map_folder)
+        lmap = get_local_map(nusc_maps[map_name], center,
+                            50.0, poly_names, line_names)
+        # print(lmap)
+        my_im_size = 400
+        total_poly = Polygon([(0,0),(my_im_size,0),(my_im_size,my_im_size),(0,my_im_size)]) ## 400 -> 248
+        
+        imgs = np.zeros((len(poly_names),my_im_size,my_im_size))
+        dx, bx = self.dx[:2], self.bx[:2]
+        for i,name in enumerate(poly_names):
+            for la in lmap[name]:
+                pts = (la - bx) / dx
+                pts_reversed = [(pts[indd_,1],pts[indd_,0]) for indd_ in range(len(pts))]
+                pts_poly = Polygon(pts_reversed)
+                if total_poly.disjoint(pts_poly):
+                    continue
+                # print()
+                pts_poly = make_valid(pts_poly)
+                # print(pts_poly)
+                poly_res = total_poly.intersection(pts_poly)
+                
+                # try:
+                #     poly_res = total_poly.intersection(pts_poly)
+                # except:
+                #     print("!!!!!")
+                #     print(poly_res)
+                #     pts_poly.buffer(0)
+                #     print(poly_res)
+                #     poly_res = total_poly.intersection(pts_poly)
+                if type(poly_res) == type(total_poly):
+                    x_res, y_res = poly_res.exterior.coords.xy
+                    res_pts = [(x_res[ind_],y_res[ind_]) for ind_ in range(len(x_res))]
+                    # print(res_pts)
+                    cv2.fillPoly(imgs[i],np.int32([res_pts]),1)
+                else:
+                    for polys in poly_res:
+                        x_res, y_res = polys.exterior.coords.xy
+                        res_pts = [(x_res[ind_],y_res[ind_]) for ind_ in range(len(x_res))]
+                        # print(res_pts)
+                        cv2.fillPoly(imgs[i],np.int32([res_pts]),1)
+                
+        return torch.Tensor(imgs)
+
+    def get_binimg_ve(self, rec):
+        egopose = self.nusc.get('ego_pose',
+                                self.nusc.get('sample_data', rec['data']['LIDAR_TOP'])['ego_pose_token'])
+        trans = -np.array(egopose['translation'])
+        rot = Quaternion(egopose['rotation']).inverse
+        img = np.zeros((self.nx[0], self.nx[1]))
+        for tok in rec['anns']:
+            inst = self.nusc.get('sample_annotation', tok)
+            # add category for lyft
+            if not inst['category_name'].split('.')[0] == 'vehicle':
+                # print(inst['category_name']): human, static_object,movable_object
+                # print(inst['category_name'].split('.')[0])
+                continue
+            box = Box(inst['translation'], inst['size'], Quaternion(inst['rotation']))
+            box.translate(trans)
+            box.rotate(rot)
+
+            pts = box.bottom_corners()[:2].T
+            pts = np.round(
+                (pts - self.bx[:2] + self.dx[:2]/2.) / self.dx[:2]
+                ).astype(np.int32)
+            pts[:, [1, 0]] = pts[:, [0, 1]]
+            cv2.fillPoly(img, [pts], 1.0)
+        return torch.Tensor(img)
+
+    def get_binimg_human(self, rec):
+        egopose = self.nusc.get('ego_pose',
+                                self.nusc.get('sample_data', rec['data']['LIDAR_TOP'])['ego_pose_token'])
+        trans = -np.array(egopose['translation'])
+        rot = Quaternion(egopose['rotation']).inverse
+        img = np.zeros((self.nx[0], self.nx[1]))
+        for tok in rec['anns']:
+            inst = self.nusc.get('sample_annotation', tok)
+            # add category for lyft
+            if not inst['category_name'].split('.')[0] == 'human':
+                # print(inst['category_name']): human, static_object,movable_object
+                continue
+            box = Box(inst['translation'], inst['size'], Quaternion(inst['rotation']))
+            box.translate(trans)
+            box.rotate(rot)
+
+            pts = box.bottom_corners()[:2].T
+            pts = np.round(
+                (pts - self.bx[:2] + self.dx[:2]/2.) / self.dx[:2]
+                ).astype(np.int32)
+            pts[:, [1, 0]] = pts[:, [0, 1]]
+            cv2.fillPoly(img, [pts], 1.0)
+
+        return torch.Tensor(img)
+
+
     def __call__(self, res, info):
 
         if res["type"] in ["NuScenesDataset"] and "gt_boxes" in info:
             gt_boxes = info["gt_boxes"].astype(np.float32)
             gt_boxes[np.isnan(gt_boxes)] = 0
+            info_tocken = info["token"]
+            rec = self.nusc.get('sample', info_tocken)
+            binimg_map = self.get_binimg_map(rec)
             res["lidar"]["annotations"] = {
                 "boxes": gt_boxes,
                 "names": info["gt_names"],
                 "tokens": info["gt_boxes_token"],
                 "velocities": info["gt_boxes_velocity"].astype(np.float32),
+                "bin_map":binimg_map
             }
+
+            
+
         elif res["type"] == 'WaymoDataset' and "gt_boxes" in info:
             res["lidar"]["annotations"] = {
                 "boxes": info["gt_boxes"].astype(np.float32),

@@ -69,7 +69,7 @@ class Preprocess(object):
                 "gt_names": np.array(anno_dict["names"]).reshape(-1),
                 "bin_map":anno_dict["bin_map"]
             }
-            print("inside preprocess",anno_dict["bin_map"])
+            # print("inside preprocess",anno_dict["bin_map"])
 
         if self.mode == "train" and not self.no_augmentation:
             selected = drop_arrays_by_name(

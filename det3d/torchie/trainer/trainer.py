@@ -52,7 +52,9 @@ def example_to_device(example, device, non_blocking=False) -> dict:
             "gt_boxes_and_cls",
             "bin_map"
         ]:
+            print(k)
             example_torch[k] = v.to(device, non_blocking=non_blocking)
+            print("convert finished:",k)
         elif k == "calib":
             calib = {}
             for k1, v1 in v.items():

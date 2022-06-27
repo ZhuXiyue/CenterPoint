@@ -271,6 +271,10 @@ class LoadPointCloudAnnotations(object):
     def __init__(self, with_bbox=True, **kwargs):
         self._root_path = "data/nuScenes"
         self.nusc =  NuScenes(version='v1.0-trainval', dataroot=self._root_path, verbose=True)
+        ## this will generate a gt with the same size of the mid spatial features
+        self.x_bound,self.y_bound,self.z_bound = [-50.0, 50.0, 0.25 ], [-50.0, 50.0, 0.25], [-10.0, 10.0, 20.0] # 0.25->0.403225 for voxel net
+        dx, bx, nx = gen_dx_bx(self.x_bound,self.y_bound,self.z_bound)
+        self.dx, self.bx, self.nx = dx.numpy(), bx.numpy(), nx.numpy()
         # pass
 
     def get_binimg_map(self, rec):

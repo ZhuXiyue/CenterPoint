@@ -56,8 +56,9 @@ class PointPillars(SingleStageDetector):
         gt = example["bin_map"]
 
         np.save('gt.npy',gt.cpu().detach().numpy())
+        np.save('before_neck_x.npy',before_neck_x.cpu().detach().numpy())
+        np.save('seg_preds.npy',seg_preds.cpu().detach().numpy())
 
-        np.save('before_neck_x.npy',gt.cpu().detach().numpy())
 
         # print(gt.size())
         # print(seg_preds.size())

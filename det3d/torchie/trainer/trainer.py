@@ -363,7 +363,7 @@ class Trainer(object):
 
         # data = example_convert_to_torch(data, device=device)
         
-        data['bin_map'] = torch.tensor(data['bin_map'][:,:,:,::-1])
+        data['bin_map'] = torch.tensor(data['bin_map'][:,:,:,::-1].copy())
         # print(data['bin_map'])
         # print(data['coordinates'])
         example = example_to_device(

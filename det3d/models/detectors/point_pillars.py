@@ -1,6 +1,7 @@
 from ..registry import DETECTORS
 from .single_stage import SingleStageDetector
 from copy import deepcopy 
+from ..seg.seg_heads import *   
 
 @DETECTORS.register_module
 class PointPillars(SingleStageDetector):
@@ -17,7 +18,7 @@ class PointPillars(SingleStageDetector):
         super(PointPillars, self).__init__(
             reader, backbone, neck, bbox_head, train_cfg, test_cfg, pretrained
         )
-
+        self.seg_head = Unet_res50()
     def extract_feat(self, data):
         input_features = self.reader(
             data["features"], data["num_voxels"], data["coors"]
@@ -47,11 +48,18 @@ class PointPillars(SingleStageDetector):
 
         x = self.extract_feat(data)
         preds, _ = self.bbox_head(x)
+        seg_preds = self.seg_head(x)
+        seg_loss_fn = nn.BCELoss()
+        gt = example["bin_map"]
 
         if return_loss:
-            return self.bbox_head.loss(example, preds, self.test_cfg)
+            seg_loss = 0
+            for i in range(len(gt[0])):
+                seg_loss += seg_loss_fn(seg_preds[:,i,:,:],gt[:,i,:,:])
+
+            return self.bbox_head.loss(example, preds, self.test_cfg), seg_loss
         else:
-            return self.bbox_head.predict(example, preds, self.test_cfg)
+            return self.bbox_head.predict(example, preds, self.test_cfg),seg_preds
 
     def forward_two_stage(self, example, return_loss=True, **kwargs):
         voxels = example["voxels"]

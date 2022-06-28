@@ -272,7 +272,7 @@ class LoadPointCloudAnnotations(object):
         self._root_path = "data/nuScenes"
         self.nusc =  NuScenes(version='v1.0-trainval', dataroot=self._root_path, verbose=True)
         ## this will generate a gt with the same size of the mid spatial features
-        self.x_bound,self.y_bound,self.z_bound = [-50.0, 50.0, 0.25 ], [-50.0, 50.0, 0.25], [-10.0, 10.0, 20.0] # 0.25->0.403225 for voxel net
+        self.x_bound,self.y_bound,self.z_bound = [-51.2, 51.2, 0.2 ], [-51.2, 51.2, 0.2], [-10.0, 10.0, 20.0] # 0.25->0.403225 for voxel net
         dx, bx, nx = gen_dx_bx(self.x_bound,self.y_bound,self.z_bound)
         self.dx, self.bx, self.nx = dx.numpy(), bx.numpy(), nx.numpy()
         # pass
@@ -297,7 +297,7 @@ class LoadPointCloudAnnotations(object):
         lmap = get_local_map(nusc_maps[map_name], center,
                             50.0, poly_names, line_names)
         # print(lmap)
-        my_im_size = 400
+        my_im_size = 512
         total_poly = Polygon([(0,0),(my_im_size,0),(my_im_size,my_im_size),(0,my_im_size)]) ## 400 -> 248
         
         imgs = np.zeros((len(poly_names),my_im_size,my_im_size))

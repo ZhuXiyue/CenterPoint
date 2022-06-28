@@ -83,8 +83,8 @@ class Reformat(object):
 
                 return [data_bundle, yflip_data_bundle, xflip_data_bundle, double_flip_data_bundle], info
 
-        print("inside formatting:",data_bundle["bin_map"])
-        print("inside formatting:",data_bundle["coordinates"])
+        # print("inside formatting:",data_bundle["bin_map"])
+        # print("inside formatting:",data_bundle["coordinates"])
 
         return data_bundle, info
 

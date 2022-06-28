@@ -373,9 +373,10 @@ class Trainer(object):
         self.call_hook("after_data_to_device")
 
         if train_mode:
-            losses = model(example, return_loss=True)
+            losses,seg_loss = model(example, return_loss=True)
             self.call_hook("after_forward")
             loss, log_vars = parse_second_losses(losses)
+            loss += seg_loss
             del losses
 
             outputs = dict(

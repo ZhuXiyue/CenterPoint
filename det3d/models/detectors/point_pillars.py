@@ -26,6 +26,7 @@ class PointPillars(SingleStageDetector):
         x = self.backbone(
             input_features, data["coors"], data["batch_size"], data["input_shape"]
         )
+        print(x.size())
         if self.with_neck:
             x = self.neck(x)
         return x
@@ -47,6 +48,7 @@ class PointPillars(SingleStageDetector):
         )
 
         x = self.extract_feat(data)
+        print(x.size())
         preds, _ = self.bbox_head(x)
         seg_preds = self.seg_head(x)
         seg_loss_fn = nn.BCELoss()

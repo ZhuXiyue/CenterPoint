@@ -59,11 +59,11 @@ def Conv(n_input, n_output, k_size=4, stride=2, padding=0, bn=False, dropout=0):
 
 
 class Unet_res50(nn.Module):
-    def __init__(self, n_classes=9):
+    def __init__(self, n_classes=7):
         super().__init__()
         
         self.resnet = models.resnet50(pretrained=False)
-        self.conv1 = nn.Conv2d(in_channels=64, out_channels=64, kernel_size=7, stride=2, padding=3, bias=False)#self.resnet.conv1
+        self.conv1 = nn.Conv2d(in_channels=384, out_channels=64, kernel_size=7, stride=2, padding=3, bias=False)#self.resnet.conv1
         self.bn1 = self.resnet.bn1
         self.relu = self.resnet.relu
         self.maxpool = self.resnet.maxpool
@@ -686,6 +686,6 @@ class Unet_res50(nn.Module):
 
 if __name__ == "__main__":
     model = Unet_res50().cpu()
-    inp = torch.rand((2, 64, 400, 400)).cpu()
+    inp = torch.rand((2, 384, 400, 400)).cpu()
     out = model(inp)
     print(out.size())

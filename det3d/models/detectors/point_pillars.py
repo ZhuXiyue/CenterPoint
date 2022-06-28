@@ -26,10 +26,10 @@ class PointPillars(SingleStageDetector):
         x = self.backbone(
             input_features, data["coors"], data["batch_size"], data["input_shape"]
         )
-        print(x.size())
+        # print(x.size())
         if self.with_neck:
-            x = self.neck(x)
-        return x
+            neck_x = self.neck(x)
+        return x,neck_x
 
     def forward(self, example, return_loss=True, **kwargs):
         voxels = example["voxels"]
@@ -47,13 +47,15 @@ class PointPillars(SingleStageDetector):
             input_shape=example["shape"][0],
         )
 
-        x = self.extract_feat(data)
+        before_neck_x,x = self.extract_feat(data)
         print(x.size())
+        print(before_neck_x.size())
         preds, _ = self.bbox_head(x)
-        seg_preds = self.seg_head(x)
+        seg_preds = self.seg_head(before_neck_x)
         seg_loss_fn = nn.BCELoss()
         gt = example["bin_map"]
-
+        print(gt.size())
+        print(seg_preds.size())
         if return_loss:
             seg_loss = 0
             for i in range(len(gt[0])):

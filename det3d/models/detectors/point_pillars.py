@@ -48,19 +48,19 @@ class PointPillars(SingleStageDetector):
         )
 
         before_neck_x,x = self.extract_feat(data)
-        print(x.size())
-        print(before_neck_x.size())
+        # print(x.size())
+        # print(before_neck_x.size())
         preds, _ = self.bbox_head(x)
         seg_preds = self.seg_head(before_neck_x)
         seg_loss_fn = nn.BCELoss()
         gt = example["bin_map"]
-        print(gt.size())
-        print(seg_preds.size())
+        # print(gt.size())
+        # print(seg_preds.size())
         if return_loss:
             seg_loss = 0
             for i in range(len(gt[0])):
                 seg_loss += seg_loss_fn(seg_preds[:,i,:,:],gt[:,i,:,:])
-
+            print('seg loss',seg_loss)
             return self.bbox_head.loss(example, preds, self.test_cfg), seg_loss
         else:
             return self.bbox_head.predict(example, preds, self.test_cfg),seg_preds

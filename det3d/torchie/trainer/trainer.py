@@ -364,8 +364,8 @@ class Trainer(object):
         # data = example_convert_to_torch(data, device=device)
         
         data['bin_map'] = torch.tensor(data['bin_map'])
-        print(data['bin_map'])
-        print(data['coordinates'])
+        # print(data['bin_map'])
+        # print(data['coordinates'])
         example = example_to_device(
             data, torch.cuda.current_device(), non_blocking=False
         )

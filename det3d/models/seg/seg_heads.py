@@ -63,7 +63,7 @@ class Unet_res50(nn.Module):
         super().__init__()
         
         self.resnet = models.resnet50(pretrained=False)
-        self.conv1 = nn.Conv2d(in_channels=384, out_channels=64, kernel_size=7, stride=2, padding=3, bias=False)#self.resnet.conv1
+        self.conv1 = nn.Conv2d(in_channels=64, out_channels=64, kernel_size=7, stride=2, padding=3, bias=False)#self.resnet.conv1
         self.bn1 = self.resnet.bn1
         self.relu = self.resnet.relu
         self.maxpool = self.resnet.maxpool

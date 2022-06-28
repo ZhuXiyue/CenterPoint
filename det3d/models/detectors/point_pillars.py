@@ -54,6 +54,11 @@ class PointPillars(SingleStageDetector):
         seg_preds = self.seg_head(before_neck_x)
         seg_loss_fn = nn.BCELoss()
         gt = example["bin_map"]
+        
+        # np.save('gt.npy',gt.cpu().detach().numpy())
+
+        # np.save('before_neck_x.npy',gt.cpu().detach().numpy())
+
         # print(gt.size())
         # print(seg_preds.size())
         if return_loss:
@@ -61,7 +66,7 @@ class PointPillars(SingleStageDetector):
             for i in range(len(gt[0])):
                 seg_loss += seg_loss_fn(seg_preds[:,i,:,:],gt[:,i,:,:])
             print('seg loss',seg_loss)
-            return self.bbox_head.loss(example, preds, self.test_cfg), seg_loss
+            return self.bbox_head.loss(example, preds, self.test_cfg), 3*seg_loss
         else:
             return self.bbox_head.predict(example, preds, self.test_cfg),seg_preds
 

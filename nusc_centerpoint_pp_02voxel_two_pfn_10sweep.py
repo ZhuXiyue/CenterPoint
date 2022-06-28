@@ -203,7 +203,7 @@ optimizer = dict(
     type="adam", amsgrad=0.0, wd=0.01, fixed_wd=True, moving_average=False,
 )
 lr_config = dict(
-    type="one_cycle", lr_max=0.001, moms=[0.95, 0.85], div_factor=10.0, pct_start=0.4,
+    type="one_cycle", lr_max=0.004, moms=[0.95, 0.85], div_factor=10.0, pct_start=0.4,
 )
 
 checkpoint_config = dict(interval=1)

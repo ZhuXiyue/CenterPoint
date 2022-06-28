@@ -404,12 +404,12 @@ class Trainer(object):
         for i, data_batch in enumerate(data_loader):
             # know about the input and output
             # print(data_batch)
-            for key in data_batch:
-                print(key)
-                try:
-                    print(np.shape(data_batch[key]))
-                except:
-                    print("no shape")
+            # for key in data_batch:
+            #     print(key)
+            #     try:
+            #         print(np.shape(data_batch[key]))
+            #     except:
+            #         print("no shape")
             global_step = base_step + i
             if self.lr_scheduler is not None:
                 #print(global_step)

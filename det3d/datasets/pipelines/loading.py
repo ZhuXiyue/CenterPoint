@@ -29,7 +29,7 @@ def gen_dx_bx(xbound, ybound, zbound):
     return dx, bx, nx
 
 def get_rot(h):
-    return torch.Tensor([
+    return np.array([
         [np.cos(h), np.sin(h)],
         [-np.sin(h), np.cos(h)],
     ])
